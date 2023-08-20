@@ -1,0 +1,37 @@
+services:
+  - type: cron
+    name: get-tee-times
+    runtime: python
+    schedule: "* * * * *"
+    buildCommand: "pip install -r requirements.txt" # ensure it's a string
+    startCommand: "python bot.py"
+    envVars:
+      - key: COURSE
+        value: BETHPAGE
+      - key: DAYS
+        value: 7
+      - key: TARGET_DATE
+        value: "2023-08-26"
+      - key: REDIS_HOST
+        fromService:
+          type: redis
+          name: cache
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          type: redis
+          name: cache
+          property: port
+      - fromGroup: slack-url
+  - type: redis
+    name: cache
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: everywhere
+    plan: free
+
+envVarGroups:
+  - name: slack-url 
+    envVars:
+      - key: SLACK_URL
+        sync: false
