@@ -6,6 +6,9 @@ import requests
 import datetime
 from datetime import timedelta
 import abc
+from pytz import timezone
+
+eastern = timezone("US/Eastern")
 
 
 class ForeupCourses(abc.ABC):
@@ -123,7 +126,16 @@ else:
 
 tee_times_by_day = defaultdict(list)
 for tee_time in tee_times:
-    _tee_time = datetime.datetime.strptime(tee_time["time"], "%Y-%m-%d %H:%M")
+    _tee_time = datetime.datetime.strptime(
+        tee_time["time"], "%Y-%m-%d %H:%M"
+    ).astimezone(eastern)
+    if tee_time["available_spots"] < 3 or _tee_time.hour >= 16:
+        print(
+            "Skipping because it's too late or has too few spots: "
+            f"{tee_time['available_spots']} at {_tee_time}"
+        )
+        continue
+
     tee_times_by_day[_tee_time.strftime("%Y-%m-%d")].append(
         _tee_time.strftime("%I:%M %p")
     )
